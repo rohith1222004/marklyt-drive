@@ -10,7 +10,7 @@ export const dbConnect = async () => {
     return;
   }
   try {
-    await mongoose.connect('mongodb+srv://brohithkumar:9976188669@cluster0.2wl7tuh.mongodb.net/', {
+    await mongoose.connect(process.env.MONGODB_URL, {
       dbName: "MY_DB",
       // useNewUrlParser: true,
       // useUnifiedTopology: true,

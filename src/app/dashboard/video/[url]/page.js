@@ -22,7 +22,9 @@ const page = () => {
     let decUrl = decodeURL(url)
 
     return (
-        <video width="320" height="240" controls preload="none">
+ 
+        <div className="flex items-center justify-center h-screen">
+        <video  width="800" height="150" controls preload="none">
           <source src={decUrl} type="video/mp4" />
           <track
             src="/path/to/captions.vtt"
@@ -32,6 +34,7 @@ const page = () => {
           />
           Your browser does not support the video tag.
         </video>
+      </div>
       )
 }
 

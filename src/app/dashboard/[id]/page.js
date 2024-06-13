@@ -3,8 +3,23 @@ import axios from 'axios';
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from 'react';
 import FolderCard from '../../../../components/folderCard';
-
-
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogFooter,
+} from '@/components/ui/alert-dialog';
+import { Label } from '@radix-ui/react-context-menu';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import FileCard from '@/components/FileCard';
+import TopBar from '@/components/TopBar';
 
 function Page() {
 
@@ -16,7 +31,9 @@ function Page() {
     const [link, setLink] = useState();
     const [inputValue, setInputValue] = useState();
     const [deleteInputChange, setDeleteInputChange] = useState()
+    const [refresh,setRefresh] = useState(false)
 
+    const myTimeout = setTimeout(() =>{setRefresh(false)}, 5000);
 
     const handleUploadFile = async (event) => {
         const file = event.target.files[0]
@@ -39,9 +56,8 @@ function Page() {
         console.log('====================================');
         console.log(response);
         console.log('====================================');
-        setUpload(true)
-
-        const myTimeout = setTimeout(() =>{setUpload(false)}, 5000);
+        setRefresh(true)
+        myTimeout
     }
 
     const handleFileGet = async(key) => {
@@ -74,33 +90,36 @@ function Page() {
   };
  
        
+  
      const handleCreateFolder = () => {
          
          axios.post(`/api/client/${id}`,
-         {name: inputValue, type : 'folder'},
+         {name: newFolder, type : 'folder'},
          {
           headers: {
             'Content-Type': 'application/json',
           },
          })
          .then((res) =>
-         setUpload(true)
+          // console.log(res)
+          setRefresh(true)
         )
-        setUpload(false);
+        setIsAlertDialogOpen(false);
+        myTimeout
 
      }
      const handleDeleteFolder = () =>{
         axios.post(`/api/client/${deleteInputChange}`,
-          {name : deleteInputChange , type : 'deleteFolder'},
+          {name : newFolder , type : 'deleteFolder'},
           {
           headers: {
             'Content-Type': 'application/json',
           },
         })
         .then((res) =>{
-          setUpload(true);
+          console.log(res);
         })
-        setUpload(false)
+        setIsAlertDialogOpen(false);
      }
 
     useEffect(() => {
@@ -121,65 +140,75 @@ function Page() {
         .catch((error) => {
             console.error('Error fetching folders:', error);
         });
-    }, [upload]);
+    }, [refresh]);
 
-    return (
-        <div>
-        <input
-          style={{
-            margin:5,
-            border: '2px solid gray',
-            borderRadius: '0.375rem',
-            padding: '0.5rem',
-            color: '#4b5563'
-          }}
-
-            type="text"
-            value={inputValue}
-            onChange={handleInputChange}
-        />
-        <button color="primary" onClick={handleCreateFolder}>Create Folder</button>
-          <input style={{marginLeft:500}} type="file" onChange={handleUploadFile} />
-
-
-          <input style={{margin:10}} type="text" onChange={handleUploadFile} />
-          <input
-          style={{
-            margin:5,
-            border: '2px solid gray',
-            borderRadius: '0.375rem',
-            padding: '0.5rem',
-            color: '#4b5563'
-          }}
-
-            type="text"
-            value={deleteInputChange}
-            onChange={handleDeleteInputChange}
-        />
-
-        <button color="primary" onClick={handleDeleteFolder}>Delete Folder</button>
-            
-            {folders.map((folder, index) => (
-                <div 
-                key={index}
-                onClick={() =>{
-
-                    if (folder.type == 'file') {
-                        handleFileGet(folder.name)
-                    } else {
-                        router.push(`/dashboard/${folder.id}`)
-                    }
-                }}
-                >   
-                    <FolderCard folder={folder.name} />
-                </div>
-            ))}
-
-            <div>
-                {upload?'Uploaded!!!':null}
+//newly added
+const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
+const [newFolder, setNewFolder] = useState('');
+const handleCancel = () => {
+  setIsAlertDialogOpen(false);
+  setNewFolder('');
+};
+return (
+  // <div className="w-full h-screen flex flex-col overflow-hidden">
+    // <div className="flex-1 flex flex-col p-4 bg-green-500 h-80">
+    <div>
+      <ContextMenu>
+        <ContextMenuTrigger className="flex flex-col h-screen overflow-hidden rounded-md border border-dashed text-sm ">
+          <div className="flex items-center justify-end p-3">
+            <Input className="w-48 bg-blue-600/90 text-white file:text-white" type="file" onChange={handleUploadFile} />
+          </div>
+          <ScrollArea className="flex-1 overflow-y-auto h-auto">
+            <div className="flex justify-center items-center flex-col">
+              <div className="flex flex-wrap justify-center gap-5 p-5">
+                {folders.map((folder, index) => (
+                  <div
+                    key={index}
+                    className="cursor-pointer"
+                    onClick={() => {
+                      if (folder.type === 'file') {
+                        handleFileGet(folder.name);
+                      } else {
+                        router.push(`/dashboard/${folder.id}`);
+                      }
+                    }}
+                  >
+                    <FileCard folderName={folder.name} />
+                  </div>
+                ))}
+              </div>
             </div>
-        </div>
-    );
+          </ScrollArea>
+          {upload ? <h1 className="text-center mt-2">Uploaded!!</h1> : null}
+        </ContextMenuTrigger>
+
+        <ContextMenuContent className="w-64">
+          <ContextMenuItem inset onClick={() => setIsAlertDialogOpen(true)}>
+            Create Folder
+          </ContextMenuItem>
+          <ContextMenuItem inset onClick={() => setIsAlertDialogOpen(true) }>
+            Delete Folder
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+
+      <AlertDialog open={isAlertDialogOpen}>
+        <AlertDialogContent>
+          <Label>Folder Name</Label>
+          <Input value={newFolder} onChange={(e) => setNewFolder(e.target.value)} />
+          <AlertDialogFooter>
+            <Button onClick={handleCancel}>Cancel</Button>
+            <Button onClick={handleCreateFolder}>Create</Button>
+            <Button onClick={handleDeleteFolder}> Delete Folder</Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      </div>
+    // </div>
+  // </div>
+
+);
+
 }
 
 export default Page;
