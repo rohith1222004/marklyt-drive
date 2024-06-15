@@ -1,8 +1,4 @@
-import FileCard from "@/components/FileCard";
-import { Button } from "@/components/ui/button";
-
+import { redirect } from 'next/navigation'
 export default function Page() {
-  return (
-    <FileCard folderName={"Hey"}/>
-  )
+  redirect(`/dashboard`)
 }

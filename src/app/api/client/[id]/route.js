@@ -14,7 +14,7 @@ const { ObjectId } = mongoose.Types;
 // });
 
 const s3Client = new S3Client({
-	region:process.env.NEXT_PUBLIC_AWS_S3_BUCKET_NAME ,
+	region:process.env.NEXT_PUBLIC_AWS_S3_REGION ,
 	credentials: {
 		accessKeyId:process.env.NEXT_PUBLIC_AWS_S3_ACCESS_KEY_ID ,
 		secretAccessKey:process.env.NEXT_PUBLIC_AWS_S3_SECRET_ACCESS_KEY,
@@ -26,9 +26,10 @@ async function uploadFileToS3(file , fileName) {
 	console.log(fileName);
 
 	const params = {
-		Bucket: 'custom-drive',
+		Bucket: process.env.NEXT_PUBLIC_AWS_S3_BUCKET_NAME,
 		Key: `${fileName}`,
 		Body: fileBuffer,
+    // forcePathStyle: true
 	}
 
 	const command = new PutObjectCommand(params);
