@@ -23,8 +23,8 @@ const page = () => {
 
     return (
  
-        <div className="flex items-center justify-center h-screen">
-        <video  width="800" height="150" controls preload="none">
+        <div className="flex items-center justify-center ">
+        <video  controls preload="none">
           <source src={decUrl} type="video/mp4" />
           <track
             src="/path/to/captions.vtt"

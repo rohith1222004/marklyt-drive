@@ -19,7 +19,9 @@ import { Label } from '@radix-ui/react-context-menu';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import FileCard from '@/components/FileCard';
-import TopBar from '@/components/TopBar';
+import loadingAnimation from "../../../lottie/loading.json"
+import Lottie from 'lottie-react';
+
 
 function Page() {
 
@@ -32,18 +34,20 @@ function Page() {
     const [inputValue, setInputValue] = useState();
     const [deleteInputChange, setDeleteInputChange] = useState()
     const [refresh,setRefresh] = useState(false)
+    const[loading, setLoading] = useState(false)
 
     const myTimeout = setTimeout(() =>{setRefresh(false)}, 5000);
 
     const handleUploadFile = async (event) => {
+        setLoading(true)
         const file = event.target.files[0]
         console.log('====================================');
         console.log(file);
         console.log('====================================');
-
+        
         const formData = new FormData();
         formData.append('file', file);
-
+        
         const response = await axios.post( 
           `/api/client/${id}`,
           formData,
@@ -53,6 +57,7 @@ function Page() {
             },
           }
         )
+        setLoading(false)
         console.log('====================================');
         console.log(response);
         console.log('====================================');
@@ -61,6 +66,7 @@ function Page() {
     }
 
     const handleFileGet = async(key) => {
+        setLoading(true)
         await axios.get( 
          `/api/client/${id}/${key}`,
          {
@@ -70,6 +76,7 @@ function Page() {
          }
        )
        .then(res => {
+          setLoading(false)
          router.push(`/dashboard/video/${encodeURIComponent(res.data.src)}`)
          console.log("Got a Object!" , res.data.src);
          setLink(res.data.src)
@@ -92,7 +99,7 @@ function Page() {
        
   
      const handleCreateFolder = () => {
-         
+         setLoading(true)
          axios.post(`/api/client/${id}`,
          {name: newFolder, type : 'folder'},
          {
@@ -101,8 +108,9 @@ function Page() {
           },
          })
          .then((res) =>
-          // console.log(res)
+         {
           setRefresh(true)
+          setLoading(false)}
         )
         setIsAlertDialogOpen(false);
         myTimeout
@@ -150,8 +158,6 @@ const handleCancel = () => {
   setNewFolder('');
 };
 return (
-  // <div className="w-full h-screen flex flex-col overflow-hidden">
-    // <div className="flex-1 flex flex-col p-4 bg-green-500 h-80">
     <div>
       <ContextMenu>
         <ContextMenuTrigger className="flex flex-col h-screen overflow-hidden rounded-md border border-dashed text-sm ">
@@ -159,6 +165,11 @@ return (
             <Input className="w-48 bg-blue-600/90 text-white file:text-white" type="file" onChange={handleUploadFile} />
           </div>
           <ScrollArea className="flex-1 overflow-y-auto h-auto">
+           { loading ?
+           ( <Lottie
+            animationData={loadingAnimation}
+            style={{height:400}}
+            />):
             <div className="flex justify-center items-center flex-col">
               <div className="flex flex-wrap justify-center gap-5 p-5">
                 {folders.map((folder, index) => (
@@ -177,7 +188,7 @@ return (
                   </div>
                 ))}
               </div>
-            </div>
+            </div>}
           </ScrollArea>
           {upload ? <h1 className="text-center mt-2">Uploaded!!</h1> : null}
         </ContextMenuTrigger>
@@ -204,9 +215,6 @@ return (
         </AlertDialogContent>
       </AlertDialog>
       </div>
-    // </div>
-  // </div>
-
 );
 
 }

@@ -2,10 +2,10 @@
 import axios from 'axios'
 import React, { useState , useEffect} from 'react'
 import {useRouter } from "next/navigation";
-import FolderCard from '../../../components/folderCard';
 import {Button} from "@nextui-org/button";
 import FileCard from '@/components/FileCard';
-import TopBar from '@/components/TopBar';
+import Lottie from "lottie-react";
+import loadingAnimation from "../../lottie/loading.json"
 
 
 export default function page() {
@@ -13,12 +13,15 @@ export default function page() {
     const [clients, setClients] = useState([])
     const [inputValue, setInputValue] = useState('');
     const [refresh , setRefresh] = useState(false)
+    const [loading, setLoading] = useState(true)
+
     const handleInputChange = (event) => {
         setInputValue(event.target.value);
     };
 
       
     const handleCreateFolder = () => {
+        setLoading(true)
         axios.post('/api/client/',
         {name : inputValue, type : 'client'},
         {
@@ -28,6 +31,7 @@ export default function page() {
         })
         .then((res) =>{console.log(res)
             setRefresh(true)
+            setLoading(false)
         })
     }
 
@@ -39,7 +43,7 @@ export default function page() {
         })
         .then((res) =>{
             console.log(res);
-
+            setLoading(false)
             
             const clientData = res.data.data.map((client) => ({
                 name: client.name,
@@ -69,16 +73,26 @@ export default function page() {
             <Button color="primary" className='rounded-lg flex' onClick={handleCreateFolder}>Create Client</Button>
             </div>
           </div>
-          <div className='flex flex-wrap justify-center'>
-            {clients.map((client, index) => (
-              <div
-                key={client.id}
-                className='m-2 cursor-pointer '
-                onClick={() => router.push(`/dashboard/${client.id}`)}
-              >
-                <FileCard folderName={client.name} />
-              </div>
-            ))}
+          <div>
+            
+           { loading ?   
+           
+           ( <Lottie 
+              animationData={loadingAnimation}
+              style={{height:500}}
+              />)
+              :
+              <div className='flex flex-wrap justify-center'>
+                {clients.map((client, index) => (
+                  <div
+                    key={client.id}
+                    className='m-2 cursor-pointer '
+                    onClick={() => router.push(`/dashboard/${client.id}`)}
+                  >
+                    <FileCard folderName={client.name} />
+                  </div>
+                ))}
+              </div>}
           </div>
         </div>
       );
