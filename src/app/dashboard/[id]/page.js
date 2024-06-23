@@ -2,25 +2,27 @@
 import axios from 'axios';
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from 'react';
-import FolderCard from '../../../../components/folderCard';
-import { ScrollArea } from '@/components/ui/scroll-area';
+// import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
-} from '@/components/ui/context-menu';
+} from '../../../components/ui/context-menu';
 import {
   AlertDialog,
   AlertDialogContent,
   AlertDialogFooter,
-} from '@/components/ui/alert-dialog';
+} from '../../../components/ui/alert-dialog';
 import { Label } from '@radix-ui/react-context-menu';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import FileCard from '@/components/FileCard';
+import { Input } from '../../../components/ui/input';
+import { Button } from '../../../components/ui/button';
+import FileCard from '../../../components/FileCard';
 import loadingAnimation from "../../../lottie/loading.json"
 import Lottie from 'lottie-react';
+import { getFile, uploadFile } from '../../../helper/frontend/page';
+import DataCard from '../../../components/DataCard';
+
 
 
 function Page() {
@@ -41,51 +43,39 @@ function Page() {
     const handleUploadFile = async (event) => {
         setLoading(true)
         const file = event.target.files[0]
-        console.log('====================================');
-        console.log(file);
-        console.log('====================================');
         
         const formData = new FormData();
         formData.append('file', file);
         
-        const response = await axios.post( 
-          `/api/client/${id}`,
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          }
-        )
+        await uploadFile(id,formData)
         setLoading(false)
-        console.log('====================================');
-        console.log(response);
-        console.log('====================================');
         setRefresh(true)
         myTimeout
     }
 
     const handleFileGet = async(key) => {
         setLoading(true)
-        await axios.get( 
-         `/api/client/${id}/${key}`,
-         {
-           headers: {
-             'Content-Type': 'multipart/form-data',
-           },
-         }
-       )
-       .then(res => {
-          setLoading(false)
-         router.push(`/dashboard/video/${encodeURIComponent(res.data.src)}`)
-         console.log("Got a Object!" , res.data.src);
-         setLink(res.data.src)
-         console.log('====================================');
-         console.log(link);
-         console.log('====================================');
-         return res.data.res;
-         }
-       )
+      //   await axios.get( 
+      //    `/api/client/${id}/${key}`,
+      //    {
+      //      headers: {
+      //        'Content-Type': 'multipart/form-data',
+      //      },
+      //    }
+      //  )
+      //  .then(res => {
+      //     setLoading(false)
+        //  router.push(`/dashboard/video/${encodeURIComponent(res.data.src)}`)
+      //    console.log("Got a Object!" , res.data.src);
+        //  setLink(res.data.src)
+        //  return res.data.res;
+      //    }
+      //  )
+      let res = await getFile(id,key)
+      setLoading(false)
+      router.push(`/dashboard/video/${encodeURIComponent(res.data.src)}`)
+      setLink(res.data.src)
+      return res.data.res
      }
 
 
@@ -161,17 +151,19 @@ return (
     <div>
       <ContextMenu>
         <ContextMenuTrigger className="flex flex-col h-screen overflow-hidden rounded-md border border-dashed text-sm ">
+          {/* <div className="flex-1 bg-muted rounded-lg p-6 flex flex-col"> */}
+          
           <div className="flex items-center justify-end p-3">
             <Input className="w-48 bg-blue-600/90 text-white file:text-white" type="file" onChange={handleUploadFile} />
           </div>
-          <ScrollArea className="flex-1 overflow-y-auto h-auto">
+          <div className="flex-1 overflow-y-auto h-auto">
            { loading ?
            ( <Lottie
             animationData={loadingAnimation}
             style={{height:400}}
             />):
             <div className="flex justify-center items-center flex-col">
-              <div className="flex flex-wrap justify-center gap-5 p-5">
+              <div className="flex flex-wrap justify-center gap-7 pb-20">
                 {folders.map((folder, index) => (
                   <div
                     key={index}
@@ -184,13 +176,18 @@ return (
                       }
                     }}
                   >
-                    <FileCard folderName={folder.name} />
+                    {
+                      folder.type === 'file'?
+                      <DataCard folderName={folder.name}/>:
+                      <FileCard folderName={folder.name} />
+                    }
                   </div>
                 ))}
               </div>
             </div>}
-          </ScrollArea>
-          {upload ? <h1 className="text-center mt-2">Uploaded!!</h1> : null}
+          </div>
+  
+        {/* </div> */}
         </ContextMenuTrigger>
 
         <ContextMenuContent className="w-64">

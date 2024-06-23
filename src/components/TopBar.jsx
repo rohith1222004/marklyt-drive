@@ -1,15 +1,20 @@
 'use client'
-import { SearchIcon, SquirrelIcon } from 'lucide-react'
+import { Import, SearchIcon, SquirrelIcon } from 'lucide-react'
 import React from 'react'
-import { Input } from "@/components/ui/input";
+import { Input } from './ui/input';
 import Link from 'next/link';
-// import { AddClientButton } from './AddClientButton';
 import { CirclePlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { UserButton , auth, useAuth} from '@clerk/nextjs';
+
+
+
 
 
 export default function TopBar() {
   const router = useRouter();
+  const {userId} = useAuth()
+
   return (
     <div className="flex h-14 lg:h-[60px] items-center gap-4 border-b  px-6 dark:bg-gray-800/40 justify-between">
       <Link className="lg:hidden" href="#">
@@ -30,7 +35,11 @@ export default function TopBar() {
             <CirclePlus size={25} />
           </div>  
         </form>
+        {
+          userId?(
+            <UserButton/>
+          ):null
+        }
       </div>
-
   )
 }

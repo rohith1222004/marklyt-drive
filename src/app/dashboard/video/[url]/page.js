@@ -1,14 +1,10 @@
 "use client"
 import { useParams } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
-import { useRouter } from 'next/router';
 
 const page = () => {
     const params = useParams();
     const url = params.url;
-    console.log('====================================');
-    console.log(url);
-    console.log('====================================');
     
     function decodeURL(encodedUrl) {
         try {
@@ -16,7 +12,7 @@ const page = () => {
           return decodedUrl;
         } catch (error) {
           console.error('Error decoding URL:', error);
-          return encodedUrl; // Return the original URL if decoding fails
+          return encodedUrl;
         }
       }
     let decUrl = decodeURL(url)
