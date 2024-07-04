@@ -51,46 +51,7 @@ export default function page() {
     }, [refresh])
     
     return (
-        <div className=''>
-          {/* <div className='flex mb-4'>
-            <input
-              style={{
-                margin: 5,
-                border: '2px solid gray',
-                borderRadius: '0.375rem',
-                padding: '0.5rem',
-                color: '#4b5563'
-              }}
-              type="text"
-              value={inputValue}
-              onChange={handleInputChange}
-            />
-            <div className='flex items-center'>
-            <Button color="primary" className='rounded-lg flex' onClick={handleCreateFolder}>Create Client</Button>
-            </div>
-          </div>
-          <div>
-          <ScrollArea className="flex-1 overflow-y-auto h-80 bg-slate-800">
-           { loading ?   
-           
-           ( <Lottie 
-              animationData={loadingAnimation}
-              style={{height:500}}
-              />)
-              :
-              <div className='flex flex-wrap justify-center'>
-                {clients.map((client, index) => (
-                  <div
-                    key={client.id}
-                    className='m-2 cursor-pointer '
-                    onClick={() => router.push(`/dashboard/${client.id}`)}
-                  >
-                    <FileCard folderName={client.name} />
-                  </div>
-                ))}
-              </div>}
-          </ScrollArea>
-          </div> */}
+    <div className=''>
     <div className="h-screen flex flex-col">
       <div className="flex-1 bg-muted rounded-lg p-6 flex flex-col">
         <div className="flex items-center justify-between mb-4">

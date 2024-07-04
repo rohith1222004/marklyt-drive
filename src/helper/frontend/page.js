@@ -33,3 +33,21 @@ export const getFile = async(id,key) =>{
       )
       return res
 }
+
+export const getFolders = async(id) =>{
+  let folders = axios.get(`/api/client/${id}`,{
+    headers:{
+      "Content-Type": "application/json"
+    }
+  })
+  return folders;
+}
+
+export const handleCreateFolder = async(folderName, id) =>{
+      await axios.post(`/api/client/${id}`,
+        {name : folderName, type : 'folder'},
+        {
+          headers: {"Content-Type" : "application/json"},
+        }
+      ) 
+}

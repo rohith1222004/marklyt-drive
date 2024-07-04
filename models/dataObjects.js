@@ -9,8 +9,11 @@ const dataObjectSchema = new Schema({
     folder : [{
         type : mongoose.Schema.Types.ObjectId,
         ref : 'dataObject',
-    }]
+    }],
+    url: String
 })
+
+
 
 const dataObjectModel = models.dataObject || model('dataObject', dataObjectSchema)
 

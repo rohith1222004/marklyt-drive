@@ -60,12 +60,12 @@ export default function NavigationMenu() {
                 </Link>
               </nav>
             
-              <div className='mt-96 flex items-center justify-center '>
+              {/* <div className='mt-96 flex items-center justify-center '>
                 <Button className='w-40 space-x-3'>
                   <LogOut className='h-4 w-4'/>
                   <h1>LogOut</h1>
                   </Button>
-              </div>
+              </div> */}
             
             </div>
           </div>

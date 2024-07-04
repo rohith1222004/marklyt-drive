@@ -2,16 +2,9 @@ import { dbConnect } from "../../../../../utils/db";
 import dataObjectModel from "../../../../../models/dataObjects";
 import { S3Client, PutObjectCommand, ListObjectsCommand } from "@aws-sdk/client-s3";
 import mongoose from "mongoose";
+import { Upload } from "@aws-sdk/lib-storage";
 const { ObjectId } = mongoose.Types;
 
-
-// const s3Client = new S3Client({
-// 	region:'ap-south-1' ,
-// 	credentials: {
-// 		accessKeyId:'AKIA2KVQI3ET4PX2RU5B' ,
-// 		secretAccessKey:'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',
-// 	}
-// });
 
 const s3Client = new S3Client({
 	region:process.env.NEXT_PUBLIC_AWS_S3_REGION ,
@@ -32,8 +25,18 @@ async function uploadFileToS3(file , fileName) {
     // forcePathStyle: true
 	}
 
-	const command = new PutObjectCommand(params);
-	await s3Client.send(command);
+	// const command = new PutObjectCommand(params);
+  // await s3Client.send(command);
+  const upload = new Upload({
+    client: s3Client,
+    params,
+    queueSize: 4,
+    partSize: 1024 * 1024 * 5,
+  });
+  upload.on('httpUploadProgress', (progress) => {
+    console.log(progress);
+  });
+  const data = await upload.done();
 
 	return fileName;
 }
@@ -48,73 +51,98 @@ export const GET = async (req, {params}) =>{
   })
 }
 
-// export async function GET() {
-//   const response = await s3Client.send(new ListObjectsCommand({ Bucket:'custom-drive' }));
-//   return Response.json(response?.Contents ?? []);
-// }
 
 export const POST = async (request , {params}) =>{
 
   await dbConnect();
   let clientId = params.id;
-  const contentType = request.headers.get('content-type') || '';
-
+  // const contentType = request.headers.get('content-type') || '';
   
-  if (contentType.includes('multipart/form-data')) {
+  // if (contentType.includes('multipart/form-data')) {
     
-    console.log(clientId);
+  //   console.log(clientId);
     
-    const formData = await request.formData();
+  //   const formData = await request.formData();
     
-    const file = formData.get("file");
-    console.log(file)   
-    console.log(file.name);
+  //   const file = formData.get("file");
+  //   console.log(file)   
+  //   console.log(file.name);
     
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const fileName = await uploadFileToS3(buffer, file.name);
+  //   const buffer = Buffer.from(await file.arrayBuffer());
+  //   const fileName = await uploadFileToS3(buffer, file.name);
     
-    const newDataObject = new dataObjectModel({name : file.name, type : 'file'})
-    await newDataObject.save()
-    console.log("new Data object saved");
+    // const newDataObject = new dataObjectModel({name : file.name, type : 'file'})
+    // await newDataObject.save()
+    // console.log("new Data object saved");
     
-    await dataObjectModel.updateOne(
-      {_id : clientId},
-      {$push : {folder : newDataObject}}
-      )
+    // await dataObjectModel.updateOne(
+    //   {_id : clientId},
+    //   {$push : {folder : newDataObject}}
+    //   )
       
-      return Response.json({success: true,fileName: file.name})
-      }
+  //     return Response.json({success: true,fileName: file.name})
+  //     }
       
-      else{
+  // else{
         const folder = await request.json();
-        console.log(folder.name);
+        // console.log(folder);
+
+        if(folder.type === 'file'){
+          const newDataObject = new dataObjectModel({name : folder.name, type : 'file',url : folder.url})
+          await newDataObject.save()
+          console.log("new Data object saved");
+          
+          await dataObjectModel.updateOne(
+            {_id : clientId},
+            {$push : {folder : newDataObject}}
+          )
+
+          return Response.json(newDataObject)  
+        }
         
-        
+        if(folder.type === 'getFile'){
+          const urlRes = await dataObjectModel.findById(folder.id)
+          console.log("my url",urlRes.url)
+          return Response.json(urlRes.url)
+        }
+
         if (folder.type === 'deleteFolder') {
-          // Handle delete folder request
-          const deleteFolderName = folder.name;
-          await dataObjectModel.deleteOne({name : deleteFolderName})
-          return Response.json({
-            folder : deleteFolderName
-            })
+          console.log(folder.id);
+          const parentDocument = await dataObjectModel.findById(folder.id);
+          console.log(parentDocument);
+          console.log(folder.id);
+          if (!parentDocument) {
+            console.log(parentDocument);
+            await dataObjectModel.deleteOne({_id : ObjectId(parentDocument.id)})
           }
-            
-    else{
-      const objectId = new ObjectId(params.id)
-      const newDataObject = new dataObjectModel({name : folder.name,type : folder.type})
-      await newDataObject.save()
 
-      await dataObjectModel.updateOne(
-        {_id : objectId},
-        {$push : {folder : newDataObject}}
-      )
+          const folderIds = parentDocument.folder.map(folder => folder.toString());
+          folderIds.push(folder.id);
+          console.log(folderIds);
+          const deleteResult = await dataObjectModel.deleteMany({ _id: { $in: folderIds } });
+          return Response.json(deleteResult)
+          } 
 
-      return Response.json({
-        message : "good",
-        data : folder.name
-      })
-    }
+        else{
+          const objectId = new ObjectId(params.id)
+          const newDataObject = new dataObjectModel({name : folder.name,type : folder.type})
+          await newDataObject.save()
 
+          await dataObjectModel.updateOne(
+            {_id : objectId},
+            {$push : {folder : newDataObject}}
+          )
+
+          return Response.json({
+            message : "good",
+            data : folder.name
+          })
+        }
   }
   
-}
+// }
+
+
+
+
+
